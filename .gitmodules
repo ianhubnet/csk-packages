@@ -1,3 +1,6 @@
 [submodule "packages/modules/showfolio"]
 	path = packages/modules/showfolio
 	url = https://github.com/ianhubnet/csk-module-showfolio
+[submodule "packages/modules/services"]
+	path = packages/modules/services
+	url = https://github.com/ianhubnet/csk-module-services
