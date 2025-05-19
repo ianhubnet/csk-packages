@@ -4,3 +4,6 @@
 [submodule "packages/modules/services"]
 	path = packages/modules/services
 	url = https://github.com/ianhubnet/csk-module-services
+[submodule "packages/modules/chargily"]
+	path = packages/modules/chargily
+	url = https://github.com/ianhubnet/csk-module-chargily
