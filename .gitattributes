@@ -1,0 +1,30 @@
+# Normalize line endings
+* text=auto
+
+# Mark all images and binary files as binary
+*.eot binary
+*.gif binary
+*.jpeg binary
+*.jpg binary
+*.pdf binary
+*.png binary
+*.svg binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+
+# Ignore these when creating archives (via export-ignore)
+.gitattributes export-ignore
+.github/ export-ignore
+.gitignore export-ignore
+.gitmodules export-ignore
+LICENSE.md export-ignore
+README.md export-ignore
+docs/ export-ignore
+scripts/ export-ignore
+
+# Optional: treat PHP files as text
+*.json text
+*.md text
+*.php text
