@@ -10,6 +10,6 @@
 [submodule "packages/modules/pages"]
 	path = packages/modules/pages
 	url = https://github.com/ianhubnet/csk-module-pages
-[submodule "modules/menus"]
-	path = modules/menus
+[submodule "packages/modules/menus"]
+	path = packages/modules/menus
 	url = https://github.com/ianhubnet/csk-module-menus
