@@ -4,6 +4,10 @@ on:
   repository_dispatch:
     types: [update-submodules]
 
+concurrency:
+  group: update-submodules
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
