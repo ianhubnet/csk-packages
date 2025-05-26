@@ -55,8 +55,11 @@ jobs:
             git submodule update --remote "$SUB_PATH"
           else
             echo "➕ Submodule doesn't exist. Adding it..."
-            mkdir -p "$(dirname "$SUB_PATH")" || echo "⚠️ mkdir failed. Trying fallback..."
-            git submodule add "https://github.com/$REPO" "$SUB_PATH"
+            mkdir -p "$(dirname "$SUB_PATH")"
+
+            git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
+            sed -i "s|https://${{ secrets.CSK_PAT }}@|https://|" .gitmodules
+            git config -f .git/config submodule."$SUB_PATH".url "https://github.com/$REPO"
           fi
 
           git add "$SUB_PATH"
