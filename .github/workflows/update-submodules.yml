@@ -24,25 +24,30 @@ jobs:
           git config --global user.name "CSK Bot"
           git config --global user.email "skeleton@ianhub.net"
 
-      - name: Update requested submodule
+      - name: Add or update submodule
         run: |
-          TYPE=${{ github.event.client_payload.type }}
-          NAME=${{ github.event.client_payload.name }}
+          TYPE="${{ github.event.client_payload.type }}"
+          NAME="${{ github.event.client_payload.name }}"
+          REPO="${{ github.event.client_payload.repository }}"
+          PATH="${{ github.event.client_payload.path }}"
 
-          # Handle languages separately (no "name")
-          if [ "$TYPE" = "languages" ]; then
-            SUBMODULE_PATH="packages/languages"
-          else
-            SUBMODULE_PATH="packages/$TYPE/$NAME"
+          echo "Type: $TYPE"
+          echo "Name: $NAME"
+          echo "Repo: $REPO"
+          echo "Path: $PATH"
+
+          if [ -z "$PATH" ]; then
+            echo "❌ No submodule path provided. Exiting."
+            exit 1
           fi
 
-          echo "Updating submodule at: $SUBMODULE_PATH"
-
-          if [ -d "$SUBMODULE_PATH" ]; then
-            git submodule update --remote "$SUBMODULE_PATH"
-            git add "$SUBMODULE_PATH"
-            git commit -m "Auto-update submodule: $TYPE${NAME:+/$NAME}"
-            git push
+          if [ -d "$PATH" ]; then
+            echo "✅ Submodule exists. Updating..."
+            git submodule update --remote "$PATH"
           else
             echo "Submodule not found at: $SUBMODULE_PATH. Skipping."
           fi
+
+          git add "$PATH"
+          git commit -m "Auto-update/add submodule: $TYPE/${NAME:-unknown}" || echo "Nothing to commit"
+          git push
