@@ -49,7 +49,7 @@ jobs:
             git submodule update --remote "$PATH"
           else
             echo "➕ Submodule doesn't exist. Adding it..."
-            mkdir -p "$(dirname "$PATH")"
+            mkdir -p "${PATH%/*}"
             git submodule add "https://github.com/$REPO" "$PATH"
           fi
 
