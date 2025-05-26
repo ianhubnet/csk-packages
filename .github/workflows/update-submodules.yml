@@ -25,21 +25,24 @@ jobs:
           git config --global user.email "skeleton@ianhub.net"
 
       - name: Add or update submodule
+        shell: bash
         run: |
           TYPE="${{ github.event.client_payload.type }}"
-          NAME="${{ github.event.client_payload.name }}"
           REPO="${{ github.event.client_payload.repository }}"
-          PATH="${{ github.event.client_payload.path }}"
+          NAME="${{ github.event.client_payload.name }}"
 
           echo "Type: $TYPE"
           echo "Name: $NAME"
           echo "Repo: $REPO"
-          echo "Path: $PATH"
 
-          if [ -z "$PATH" ]; then
-            echo "❌ No submodule path provided. Exiting."
-            exit 1
+          if [ "$TYPE" = "languages" ]; then
+            PATH="packages/languages"
+          else
+            DIR_NAME="${NAME#*-}"  # strips csk-theme- or csk-module-
+            PATH="packages/$TYPE/$DIR_NAME"
           fi
+
+          echo "Path: $PATH"
 
           if [ -d "$PATH" ]; then
             echo "✅ Submodule exists. Updating..."
@@ -47,7 +50,7 @@ jobs:
           else
             echo "➕ Submodule doesn't exist. Adding it..."
             mkdir -p "$(dirname "$PATH")"
-            git submodule add https://github.com/$REPO "$PATH"
+            git submodule add "https://github.com/$REPO" "$PATH"
           fi
 
           git add "$PATH"
