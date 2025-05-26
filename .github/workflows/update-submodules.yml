@@ -35,6 +35,7 @@ jobs:
           TYPE="${{ github.event.client_payload.type }}"
           REPO="${{ github.event.client_payload.repo }}"
           NAME="${{ github.event.client_payload.name }}"
+          STRIP="${{ github.event.client_payload.strip }}"
 
           echo "➡️ Type: $TYPE"
           echo "📦 Name: $NAME"
@@ -42,7 +43,6 @@ jobs:
           echo "✂️ Strip: $STRIP"
 
           # Determine the local submodule directory name
-          STRIP="${{ github.event.client_payload.strip }}"
           if [ -n "$STRIP" ]; then
             DIR_NAME="${NAME#"$STRIP"}"
           else
