@@ -5,7 +5,7 @@ on:
     types: [update-submodules]
 
 concurrency:
-  group: update-submodules
+  group: update-submodules-${{ github.event.client_payload.type }}-${{ github.event.client_payload.name }}
   cancel-in-progress: false
 
 jobs:
@@ -19,33 +19,34 @@ jobs:
           token: ${{ secrets.CSK_PAT }}
           submodules: true
 
-      - name: Set up bash shell (fix missing commands)
+      - name: Set up Bash (ensure shell with coreutils)
         shell: bash
-        run: |
-          echo "Ensuring shell is bash with core utils available"
+        run: echo "Shell ready with core utilities"
 
-      - name: Configure Git
+      - name: Configure Git identity
         shell: bash
         run: |
           git config --global user.name "CSK Bot"
           git config --global user.email "skeleton@ianhub.net"
 
-      - name: Add or update submodule
+      - name: Add or Update Submodule
         shell: bash
         run: |
           TYPE="${{ github.event.client_payload.type }}"
           REPO="${{ github.event.client_payload.repo }}"
           NAME="${{ github.event.client_payload.name }}"
 
-          echo "Type: $TYPE"
-          echo "Name: $NAME"
-          echo "Repo: $REPO"
+          echo "➡️ Type: $TYPE"
+          echo "📦 Name: $NAME"
+          echo "🔗 Repo: $REPO"
+          echo "✂️ Strip: $STRIP"
 
+          # Determine the local submodule directory name
           STRIP="${{ github.event.client_payload.strip }}"
           if [ -n "$STRIP" ]; then
             DIR_NAME="${NAME#"$STRIP"}"
           else
-            DIR_NAME="${NAME##*-}"  # fallback to last part after dash
+            DIR_NAME="${NAME##*-}" # fallback to last part after dash
           fi
 
           if [ "$TYPE" = "languages" ]; then
@@ -54,7 +55,7 @@ jobs:
             SUB_PATH="packages/$TYPE/$DIR_NAME"
           fi
 
-          echo "Submodule path: $SUB_PATH"
+          echo "📂 Submodule path: $SUB_PATH"
 
           if [ -d "$SUB_PATH" ]; then
             echo "✅ Submodule exists. Updating..."
@@ -63,11 +64,27 @@ jobs:
             echo "➕ Submodule doesn't exist. Adding it..."
             mkdir -p "$(dirname "$SUB_PATH")"
             git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
+            # Cleanup the URL from .gitmodules
             git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
             sed -i "s|https://.*@github.com/|https://github.com/|g" .gitmodules
             git submodule sync
           fi
 
           git add "$SUB_PATH"
-          git commit -m "Auto-update/add submodule: $TYPE/${NAME:-unknown}" || echo "Nothing to commit"
-          git push
+
+          if git diff --cached --quiet; then
+            echo "🟡 No changes to commit."
+          else
+            echo "📝 Committing changes..."
+            git commit -m "Auto-update/add submodule: $TYPE/${NAME:-unknown}"
+          fi
+
+          echo "🚀 Pushing to origin (with retry)..."
+          for i in 1 2 3; do
+            git push && break || {
+              echo "❌ Push failed. Retry #$i in 3s..."
+              sleep 3
+            }
+          done
+
+          echo "✅ Done."
