@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           TYPE="${{ github.event.client_payload.type }}"
-          REPO="${{ github.event.client_payload.repository }}"
+          REPO="${{ github.event.client_payload.repo }}"
           NAME="${{ github.event.client_payload.name }}"
 
           echo "Type: $TYPE"
