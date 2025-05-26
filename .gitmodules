@@ -19,3 +19,6 @@
 [submodule "packages/themes/default"]
 	path = packages/themes/default
 	url = https://github.com/ianhubnet/csk-theme-default
+[submodule "packages/modules/dummy"]
+	path = packages/modules/dummy
+	url = https://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@github.com/ianhubnet/csk-module-dummy
