@@ -72,6 +72,9 @@ jobs:
 
           git add "$SUB_PATH"
 
+          git fetch origin main && git pull --rebase origin main
+          git rebase --abort || true
+
           if git diff --cached --quiet; then
             echo "🟡 No changes to commit."
           else
@@ -86,5 +89,7 @@ jobs:
               sleep 3
             }
           done
+
+          git status -sb
 
           echo "✅ Done."
