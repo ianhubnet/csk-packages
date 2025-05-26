@@ -41,16 +41,16 @@ jobs:
           echo "Name: $NAME"
           echo "Repo: $REPO"
 
-          if [ "$TYPE" = "languages" ]; then
-            SUB_PATH="packages/languages"
+          STRIP="${{ github.event.client_payload.strip }}"
+          if [ -n "$STRIP" ]; then
+            DIR_NAME="${NAME#"$STRIP"}"
           else
-            STRIP="${{ github.event.client_payload.strip }}"
-            if [ -n "$STRIP" ]; then
-              DIR_NAME="${NAME#"$STRIP"}"
-            else
-              DIR_NAME="${NAME##*-}"  # fallback to last part after dash
-            fi
+            DIR_NAME="${NAME##*-}"  # fallback to last part after dash
+          fi
 
+          if [ "$TYPE" = "languages" ]; then
+            SUB_PATH="packages/$DIR_NAME"
+          else
             SUB_PATH="packages/$TYPE/$DIR_NAME"
           fi
 
