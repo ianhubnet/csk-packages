@@ -1,0 +1,44 @@
+name: Update Submodules
+
+on:
+  repository_dispatch:
+    types: [update-submodules]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo with submodules
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.CSK_PAT }}
+          submodules: true
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "CSK Bot"
+          git config --global user.email "skeleton@ianhub.net"
+
+      - name: Update requested submodule
+        run: |
+          TYPE=${{ github.event.client_payload.type }}
+          NAME=${{ github.event.client_payload.name }}
+
+          # Handle languages separately (no "name")
+          if [ "$TYPE" = "languages" ]; then
+            SUBMODULE_PATH="packages/languages"
+          else
+            SUBMODULE_PATH="packages/$TYPE/$NAME"
+          fi
+
+          echo "Updating submodule at: $SUBMODULE_PATH"
+
+          if [ -d "$SUBMODULE_PATH" ]; then
+            git submodule update --remote "$SUBMODULE_PATH"
+            git add "$SUBMODULE_PATH"
+            git commit -m "Auto-update submodule: $TYPE${NAME:+/$NAME}"
+            git push
+          else
+            echo "Submodule not found at: $SUBMODULE_PATH. Skipping."
+          fi
