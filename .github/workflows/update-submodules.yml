@@ -62,10 +62,10 @@ jobs:
           else
             echo "➕ Submodule doesn't exist. Adding it..."
             mkdir -p "$(dirname "$SUB_PATH")"
-
             git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
-            sed -i "s|https://${{ secrets.CSK_PAT }}@|https://|" .gitmodules
-            git config -f .git/config submodule."$SUB_PATH".url "https://github.com/$REPO"
+            # Sanitize the .gitmodules file
+            git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
+            git submodule sync
           fi
 
           git add "$SUB_PATH"
