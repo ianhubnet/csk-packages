@@ -19,7 +19,13 @@ jobs:
           token: ${{ secrets.CSK_PAT }}
           submodules: true
 
+      - name: Set up bash shell (fix missing commands)
+        shell: bash
+        run: |
+          echo "Ensuring shell is bash with core utils available"
+
       - name: Configure Git
+        shell: bash
         run: |
           git config --global user.name "CSK Bot"
           git config --global user.email "skeleton@ianhub.net"
@@ -36,23 +42,23 @@ jobs:
           echo "Repo: $REPO"
 
           if [ "$TYPE" = "languages" ]; then
-            PATH="packages/languages"
+            SUB_PATH="packages/languages"
           else
             DIR_NAME="${NAME#*-}"  # strips csk-theme- or csk-module-
-            PATH="packages/$TYPE/$DIR_NAME"
+            SUB_PATH="packages/$TYPE/$DIR_NAME"
           fi
 
-          echo "Path: $PATH"
+          echo "Submodule path: $SUB_PATH"
 
-          if [ -d "$PATH" ]; then
+          if [ -d "$SUB_PATH" ]; then
             echo "✅ Submodule exists. Updating..."
-            git submodule update --remote "$PATH"
+            git submodule update --remote "$SUB_PATH"
           else
             echo "➕ Submodule doesn't exist. Adding it..."
-            mkdir -p "${PATH%/*}"
-            git submodule add "https://github.com/$REPO" "$PATH"
+            mkdir -p "$(dirname "$SUB_PATH")" || echo "⚠️ mkdir failed. Trying fallback..."
+            git submodule add "https://github.com/$REPO" "$SUB_PATH"
           fi
 
-          git add "$PATH"
+          git add "$SUB_PATH"
           git commit -m "Auto-update/add submodule: $TYPE/${NAME:-unknown}" || echo "Nothing to commit"
           git push
