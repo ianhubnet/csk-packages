@@ -44,7 +44,13 @@ jobs:
           if [ "$TYPE" = "languages" ]; then
             SUB_PATH="packages/languages"
           else
-            DIR_NAME="${NAME#*-}"  # strips csk-theme- or csk-module-
+            STRIP="${{ github.event.client_payload.strip }}"
+            if [ -n "$STRIP" ]; then
+              DIR_NAME="${NAME#"$STRIP"}"
+            else
+              DIR_NAME="${NAME##*-}"  # fallback to last part after dash
+            fi
+
             SUB_PATH="packages/$TYPE/$DIR_NAME"
           fi
 
