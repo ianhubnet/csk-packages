@@ -26,8 +26,8 @@ jobs:
       - name: Configure Git identity
         shell: bash
         run: |
-          git config --global user.name "CSK Bot"
-          git config --global user.email "skeleton@ianhub.net"
+          git config user.name "ianhub-bot"
+          git config user.email "bot@ianhub.net"
 
       - name: Add or Update Submodule
         shell: bash
