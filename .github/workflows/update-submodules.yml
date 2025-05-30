@@ -64,6 +64,7 @@ jobs:
             echo "➕ Submodule doesn't exist. Adding it..."
             mkdir -p "$(dirname "$SUB_PATH")"
             git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
+
             # Cleanup the URL from .gitmodules
             git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
             sed -i "s|https://.*@github.com/|https://github.com/|g" .gitmodules
@@ -72,8 +73,18 @@ jobs:
 
           git add "$SUB_PATH"
 
-          git fetch origin main && git pull --rebase origin main
-          git rebase --abort || true
+          # Always add submodule path and .gitmodules in case it was added/changed
+          git add .gitmodules "$SUB_PATH"
+
+          # Fetch latest remote and merge only if nothing staged
+          git fetch origin main
+
+          if git diff --cached --quiet; then
+            echo "🟢 No staged changes. Safe to pull..."
+            git merge --ff-only origin/main
+          else
+            echo "⚠️ Skipping merge to avoid overwriting staged submodule updates."
+          fi
 
           if git diff --cached --quiet; then
             echo "🟡 No changes to commit."
