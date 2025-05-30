@@ -33,6 +33,13 @@ jobs:
         shell: bash
         run: |
           TYPE="${{ github.event.client_payload.type }}"
+
+          # Abort if TYPE is not one of the accepted values
+          if [[ "$TYPE" != "modules" && "$TYPE" != "themes" && "$TYPE" != "languages" ]]; then
+            echo "❌ Invalid TYPE: '$TYPE'. Must be one of: modules, themes, languages."
+            exit 1
+          fi
+
           REPO="${{ github.event.client_payload.repo }}"
           NAME="${{ github.event.client_payload.name }}"
           STRIP="${{ github.event.client_payload.strip }}"
