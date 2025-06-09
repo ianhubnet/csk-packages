@@ -35,7 +35,7 @@ jobs:
           TYPE="${{ github.event.client_payload.type }}"
 
           # Abort if TYPE is not one of the accepted values
-          if [[ "$TYPE" != "modules" && "$TYPE" != "themes" && "$TYPE" != "languages" ]]; then
+          if [[ "$TYPE" != "modules" && "$TYPE" != "themes" && "$TYPE" != "languages" && "$TYPE" != "libraries" && "$TYPE" != "helpers" ]]; then
             echo "❌ Invalid TYPE: '$TYPE'. Must be one of: modules, themes, languages."
             exit 1
           fi
