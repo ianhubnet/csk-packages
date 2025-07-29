@@ -25,3 +25,6 @@
 [submodule "packages/themes/ianhub"]
 	path = packages/themes/ianhub
 	url = https://github.com/ianhubnet/csk-theme-ianhub
+[submodule "packages/modules/contact"]
+	path = packages/modules/contact
+	url = https://github.com/ianhubnet/csk-module-contact
