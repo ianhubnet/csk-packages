@@ -28,3 +28,6 @@
 [submodule "packages/modules/contact"]
 	path = packages/modules/contact
 	url = https://github.com/ianhubnet/csk-module-contact
+[submodule "packages/modules/settings"]
+	path = packages/modules/settings
+	url = https://github.com/ianhubnet/csk-module-settings
