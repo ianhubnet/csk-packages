@@ -31,3 +31,6 @@
 [submodule "packages/modules/settings"]
 	path = packages/modules/settings
 	url = https://github.com/ianhubnet/csk-module-settings
+[submodule "packages/modules/blog"]
+	path = packages/modules/blog
+	url = https://github.com/ianhubnet/csk-module-blog
