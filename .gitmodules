@@ -31,3 +31,6 @@
 [submodule "packages/modules/blog"]
 	path = packages/modules/blog
 	url = https://github.com/ianhubnet/csk-module-blog.git
+[submodule "packages/themes/classic"]
+	path = packages/themes/classic
+	url = https://github.com/ianhubnet/csk-theme-classic.git
