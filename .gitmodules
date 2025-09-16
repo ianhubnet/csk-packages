@@ -1,36 +1,36 @@
 [submodule "packages/modules/showfolio"]
 	path = packages/modules/showfolio
-	url = https://github.com/ianhubnet/csk-module-showfolio
+	url = https://github.com/ianhubnet/csk-module-showfolio.git
 [submodule "packages/modules/services"]
 	path = packages/modules/services
-	url = https://github.com/ianhubnet/csk-module-services
+	url = https://github.com/ianhubnet/csk-module-services.git
 [submodule "packages/modules/chargily"]
 	path = packages/modules/chargily
-	url = https://github.com/ianhubnet/csk-module-chargily
+	url = https://github.com/ianhubnet/csk-module-chargily.git
 [submodule "packages/modules/pages"]
 	path = packages/modules/pages
-	url = https://github.com/ianhubnet/csk-module-pages
+	url = https://github.com/ianhubnet/csk-module-pages.git
 [submodule "packages/modules/menus"]
 	path = packages/modules/menus
-	url = https://github.com/ianhubnet/csk-module-menus
+	url = https://github.com/ianhubnet/csk-module-menus.git
 [submodule "packages/languages"]
 	path = packages/languages
-	url = https://github.com/ianhubnet/csk-languages
+	url = https://github.com/ianhubnet/csk-languages.git
 [submodule "packages/themes/default"]
 	path = packages/themes/default
-	url = https://github.com/ianhubnet/csk-theme-default
+	url = https://github.com/ianhubnet/csk-theme-default.git
 [submodule "packages/modules/dummy"]
 	path = packages/modules/dummy
-	url = https://github.com/ianhubnet/csk-module-dummy
+	url = https://github.com/ianhubnet/csk-module-dummy.git
 [submodule "packages/themes/ianhub"]
 	path = packages/themes/ianhub
-	url = https://github.com/ianhubnet/csk-theme-ianhub
+	url = https://github.com/ianhubnet/csk-theme-ianhub.git
 [submodule "packages/modules/contact"]
 	path = packages/modules/contact
-	url = https://github.com/ianhubnet/csk-module-contact
+	url = https://github.com/ianhubnet/csk-module-contact.git
 [submodule "packages/modules/account"]
 	path = packages/modules/account
-	url = https://github.com/ianhubnet/csk-module-account
+	url = https://github.com/ianhubnet/csk-module-account.git
 [submodule "packages/modules/blog"]
 	path = packages/modules/blog
-	url = https://github.com/ianhubnet/csk-module-blog
+	url = https://github.com/ianhubnet/csk-module-blog.git
