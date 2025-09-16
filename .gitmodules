@@ -28,9 +28,9 @@
 [submodule "packages/modules/contact"]
 	path = packages/modules/contact
 	url = https://github.com/ianhubnet/csk-module-contact
-[submodule "packages/modules/settings"]
-	path = packages/modules/settings
-	url = https://github.com/ianhubnet/csk-module-settings
+[submodule "packages/modules/account"]
+	path = packages/modules/account
+	url = https://github.com/ianhubnet/csk-module-account
 [submodule "packages/modules/blog"]
 	path = packages/modules/blog
 	url = https://github.com/ianhubnet/csk-module-blog
