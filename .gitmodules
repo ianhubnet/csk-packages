@@ -16,9 +16,6 @@
 [submodule "packages/languages"]
 	path = packages/languages
 	url = https://github.com/ianhubnet/csk-languages.git
-[submodule "packages/themes/default"]
-	path = packages/themes/default
-	url = https://github.com/ianhubnet/csk-theme-default.git
 [submodule "packages/modules/dummy"]
 	path = packages/modules/dummy
 	url = https://github.com/ianhubnet/csk-module-dummy.git
