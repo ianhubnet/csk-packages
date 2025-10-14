@@ -37,3 +37,6 @@
 [submodule "packages/plugins/visitors"]
 	path = packages/plugins/visitors
 	url = https://github.com/ianhubnet/csk-plugin-visitors
+[submodule "packages/plugins/jwt"]
+	path = packages/plugins/jwt
+	url = https://github.com/ianhubnet/csk-plugin-jwt
