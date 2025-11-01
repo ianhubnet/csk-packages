@@ -40,3 +40,6 @@
 [submodule "packages/plugins/jwt"]
 	path = packages/plugins/jwt
 	url = https://github.com/ianhubnet/csk-plugin-jwt
+[submodule "packages/plugins/request-guard"]
+	path = packages/plugins/request-guard
+	url = https://github.com/ianhubnet/csk-plugin-request-guard
