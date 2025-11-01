@@ -43,3 +43,6 @@
 [submodule "packages/plugins/request-guard"]
 	path = packages/plugins/request-guard
 	url = https://github.com/ianhubnet/csk-plugin-request-guard
+[submodule "packages/plugins/exception-notifier"]
+	path = packages/plugins/exception-notifier
+	url = https://github.com/ianhubnet/csk-plugin-exception-notifier
