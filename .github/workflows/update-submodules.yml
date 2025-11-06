@@ -1,113 +1,99 @@
-name: Update Submodules
+name: Update Submodules (Trusted Dispatch)
 
 on:
   repository_dispatch:
     types: [update-submodules]
 
-concurrency:
-  group: update-submodules-${{ github.event.client_payload.type }}-${{ github.event.client_payload.name }}
-  cancel-in-progress: false
-
 jobs:
   update:
     runs-on: ubuntu-latest
 
+    env:
+      GIT_AUTHOR_NAME: "ianhub-bot"
+      GIT_AUTHOR_EMAIL: "bot@ianhub.net"
+      GIT_RETRY_COUNT: 3
+
     steps:
-      - name: Checkout repo with submodules
+      - name: Validate dispatcher origin
+        shell: bash
+        run: |
+          echo "🔍 Validating dispatcher origin..."
+          SENDER_REPO=$(jq -r '.repository.full_name' "$GITHUB_EVENT_PATH")
+          EXPECTED_REPO="ianhubnet/github-actions"
+
+          if [[ "$SENDER_REPO" != "$EXPECTED_REPO" ]]; then
+            echo "❌ Unauthorized dispatch source: $SENDER_REPO"
+            echo "Expected: $EXPECTED_REPO"
+            exit 1
+          fi
+          echo "✅ Dispatcher validated from $SENDER_REPO"
+
+      - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.CSK_PAT }}
+          token: ${{ secrets.CSK_PAT }} # Internal PAT used for trusted hub updates
           submodules: true
 
-      - name: Set up Bash (ensure shell with coreutils)
-        shell: bash
-        run: echo "Shell ready with core utilities"
+      - name: Configure Git
+        run: |
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
 
-      - name: Configure Git identity
+      - name: Parse payload
+        id: payload
         shell: bash
         run: |
-          git config user.name "ianhub-bot"
-          git config user.email "bot@ianhub.net"
+          TYPE=$(jq -r '.client_payload.type' "$GITHUB_EVENT_PATH")
+          NAME=$(jq -r '.client_payload.name' "$GITHUB_EVENT_PATH")
+          REPO=$(jq -r '.client_payload.repo' "$GITHUB_EVENT_PATH")
+          SUBPATH=$(jq -r '.client_payload.subpath' "$GITHUB_EVENT_PATH")
 
-      - name: Add or Update Submodule
-        shell: bash
-        run: |
-          TYPE="${{ github.event.client_payload.type }}"
+          echo "➡️ Type: $TYPE"
+          echo "➡️ Name: $NAME"
+          echo "➡️ Repo: $REPO"
+          echo "➡️ Submodule Path: $SUBPATH"
 
-          # Abort if TYPE is not one of the accepted values
-          if [[ "$TYPE" != "modules" && "$TYPE" != "themes" && "$TYPE" != "languages" && "$TYPE" != "libraries" && "$TYPE" != "helpers" && "$TYPE" != "plugins" ]]; then
-            echo "❌ Invalid TYPE: '$TYPE'. Must be one of: modules, themes, languages."
+          if [[ -z "$TYPE" || -z "$NAME" || -z "$REPO" ]]; then
+            echo "❌ Missing payload fields"
             exit 1
           fi
 
-          REPO="${{ github.event.client_payload.repo }}"
-          NAME="${{ github.event.client_payload.name }}"
-          STRIP="${{ github.event.client_payload.strip }}"
+          echo "TYPE=$TYPE" >> $GITHUB_ENV
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "REPO=$REPO" >> $GITHUB_ENV
+          echo "SUBPATH=$SUBPATH" >> $GITHUB_ENV
 
-          echo "➡️ Type: $TYPE"
-          echo "📦 Name: $NAME"
-          echo "🔗 Repo: $REPO"
-          echo "✂️ Strip: $STRIP"
+      - name: Update or add submodule
+        shell: bash
+        run: |
+          echo "🔧 Processing submodule..."
+          SUBPATH="${SUBPATH:-packages/${TYPE}s/${NAME}}"
+          echo "📂 Final submodule path: $SUBPATH"
 
-          # Determine the local submodule directory name
-          if [ -n "$STRIP" ]; then
-            DIR_NAME="${NAME#"$STRIP"}"
+          if [ -d "$SUBPATH" ]; then
+            echo "🔄 Submodule exists — updating..."
+            git submodule update --remote "$SUBPATH"
           else
-            DIR_NAME="${NAME##*-}" # fallback to last part after dash
+            echo "➕ Adding new submodule..."
+            mkdir -p "$(dirname "$SUBPATH")"
+            git submodule add "https://github.com/$REPO" "$SUBPATH"
           fi
 
-          if [ "$TYPE" = "languages" ]; then
-            SUB_PATH="packages/$DIR_NAME"
-          else
-            SUB_PATH="packages/$TYPE/$DIR_NAME"
-          fi
-
-          echo "📂 Submodule path: $SUB_PATH"
-
-          if [ -d "$SUB_PATH" ]; then
-            echo "✅ Submodule exists. Updating..."
-            git submodule update --remote "$SUB_PATH"
-          else
-            echo "➕ Submodule doesn't exist. Adding it..."
-            mkdir -p "$(dirname "$SUB_PATH")"
-            git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
-
-            # Cleanup the URL from .gitmodules
-            git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
-            sed -i "s|https://.*@github.com/|https://github.com/|g" .gitmodules
-            git submodule sync
-          fi
-
-          git add "$SUB_PATH"
-
-          # Always add submodule path and .gitmodules in case it was added/changed
-          git add .gitmodules "$SUB_PATH"
-
-          # Fetch latest remote and merge only if nothing staged
-          git fetch origin main
-
+          git add "$SUBPATH" .gitmodules
           if git diff --cached --quiet; then
-            echo "🟢 No staged changes. Safe to pull..."
-            git merge --ff-only origin/main
+            echo "🟢 No submodule changes detected."
           else
-            echo "⚠️ Skipping merge to avoid overwriting staged submodule updates."
+            git commit -m "Auto-update submodule: $NAME ($TYPE)"
           fi
 
-          if git diff --cached --quiet; then
-            echo "🟡 No changes to commit."
-          else
-            echo "📝 Committing changes..."
-            git commit -m "Auto-update/add submodule: $TYPE/${NAME:-unknown}"
-          fi
-
-          echo "🚀 Pushing to origin (with retry)..."
-          for i in 1 2 3; do
+      - name: Push changes (with retries)
+        shell: bash
+        run: |
+          for i in $(seq 1 $GIT_RETRY_COUNT); do
             git push && break || {
-              echo "❌ Push failed. Retry #$i in 3s..."
-              sleep 3
+              echo "❌ Push failed (attempt $i/$GIT_RETRY_COUNT)... retrying in 5s"
+              sleep 5
             }
           done
 
-          git status -sb
-
-          echo "✅ Done."
+          echo "✅ Submodule sync completed successfully."
