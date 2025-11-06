@@ -6,13 +6,16 @@ Each package is managed as a **Git submodule**, enabling independent development
 
 ## 🗂️ Repository Structure
 
+Packages are organized by type:
+
 ```
-packages/helpers/
-packages/languages
-packages/libraries/
-packages/modules/
-packages/plugins/
-packages/themes/
+packages/
+├──helpers/
+├──languages
+├──libraries/
+├──modules/
+├──plugins/
+├──themes/
 ```
 
 Each subfolder contains official CSK components, many of which are private.
@@ -32,6 +35,30 @@ Each subfolder contains official CSK components, many of which are private.
 * Provide a base for the CSK **in-app Marketplace**.
 * Simplify updates, packaging, and distribution pipelines.
 * Serve as a backend dependency hub for production builds.
+
+## Automation
+New packages register themselves automatically when:
+- They follow the naming convention `csk-<type>-<name>`.
+- They define the following repository variables:
+  - `CSK_STRIP` → prefix to strip (e.g., `csk-module-`).
+  - `CSK_TYPE` → type of the package (`modules`, `themes`, etc.).
+  - `CSK_PAT` → personal access token for communication.
+
+> 🪄 This system allows decentralized development while maintaining a synchronized ecosystem.
+
+---
+
+## Example
+| Type | Example Repo | CSK_STRIP | CSK_TYPE | CSK_PAT | Added Under |
+|------|--------------|-----------|----------|---------|-------------|
+| Module | `csk-module-pages` | `csk-module-` | `modules` | `<secret>` | `packages/modules/pages` |
+| Theme | `csk-theme-default` | `csk-theme-` | `themes` | `<secret>` | `packages/themes/default` |
+| Helper | `csk-helper-array` | `csk-helper-` | `helpers` | `<secret>` | `packages/helpers/array` |
+
+---
+
+> 🚀 CSK uses this monorepo to build update bundles and power its in-app marketplace.
+
 
 ## 🔗 Related Repositories
 
