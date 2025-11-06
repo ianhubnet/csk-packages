@@ -31,12 +31,14 @@ jobs:
 
       - name: Add or Update Submodule
         shell: bash
+        env:
+          ACCEPTED_TYPES: ${{ vars.CSK_ACCEPTS }}
         run: |
           TYPE="${{ github.event.client_payload.type }}"
 
           # Abort if TYPE is not one of the accepted values
-          if [[ "$TYPE" != "modules" && "$TYPE" != "themes" && "$TYPE" != "languages" && "$TYPE" != "libraries" && "$TYPE" != "helpers" && "$TYPE" != "plugins" ]]; then
-            echo "❌ Invalid TYPE: '$TYPE'. Must be one of: modules, themes, languages."
+          if ! [[ "$ACCEPTED_TYPES" =~ (^|[|])"$TYPE"($|[|]) ]]; then
+            echo "❌ Invalid TYPE: '$TYPE'. Must be one of: $(echo "$ACCEPTED_TYPES" | tr '|' ', ')."
             exit 1
           fi
 
