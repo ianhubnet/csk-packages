@@ -46,3 +46,6 @@
 [submodule "packages/plugins/exception-notifier"]
 	path = packages/plugins/exception-notifier
 	url = https://github.com/ianhubnet/csk-plugin-exception-notifier
+[submodule "packages/plugins/oembed"]
+	path = packages/plugins/oembed
+	url = https://github.com/ianhubnet/csk-plugin-oembed
