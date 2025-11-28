@@ -13,9 +13,6 @@
 [submodule "packages/modules/menus"]
 	path = packages/modules/menus
 	url = https://github.com/ianhubnet/csk-module-menus.git
-[submodule "packages/languages"]
-	path = packages/languages
-	url = https://github.com/ianhubnet/csk-languages.git
 [submodule "packages/modules/dummy"]
 	path = packages/modules/dummy
 	url = https://github.com/ianhubnet/csk-module-dummy.git
