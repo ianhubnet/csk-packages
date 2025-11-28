@@ -46,3 +46,72 @@
 [submodule "packages/plugins/oembed"]
 	path = packages/plugins/oembed
 	url = https://github.com/ianhubnet/csk-plugin-oembed
+[submodule "packages/languages/arabic"]
+	path = packages/languages/arabic
+	url = https://github.com/ianhubnet/csk-lang-arabic.git
+[submodule "packages/languages/brazilian"]
+	path = packages/languages/brazilian
+	url = https://github.com/ianhubnet/csk-lang-brazilian.git
+[submodule "packages/languages/bulgarian"]
+	path = packages/languages/bulgarian
+	url = https://github.com/ianhubnet/csk-lang-bulgarian.git
+[submodule "packages/languages/chinese"]
+	path = packages/languages/chinese
+	url = https://github.com/ianhubnet/csk-lang-chinese.git
+[submodule "packages/languages/czech"]
+	path = packages/languages/czech
+	url = https://github.com/ianhubnet/csk-lang-czech.git
+[submodule "packages/languages/dutch"]
+	path = packages/languages/dutch
+	url = https://github.com/ianhubnet/csk-lang-dutch.git
+[submodule "packages/languages/english"]
+	path = packages/languages/english
+	url = https://github.com/ianhubnet/csk-lang-english.git
+[submodule "packages/languages/french"]
+	path = packages/languages/french
+	url = https://github.com/ianhubnet/csk-lang-french.git
+[submodule "packages/languages/german"]
+	path = packages/languages/german
+	url = https://github.com/ianhubnet/csk-lang-german.git
+[submodule "packages/languages/hindi"]
+	path = packages/languages/hindi
+	url = https://github.com/ianhubnet/csk-lang-hindi.git
+[submodule "packages/languages/indonesian"]
+	path = packages/languages/indonesian
+	url = https://github.com/ianhubnet/csk-lang-indonesian.git
+[submodule "packages/languages/italian"]
+	path = packages/languages/italian
+	url = https://github.com/ianhubnet/csk-lang-italian.git
+[submodule "packages/languages/japanese"]
+	path = packages/languages/japanese
+	url = https://github.com/ianhubnet/csk-lang-japanese.git
+[submodule "packages/languages/korean"]
+	path = packages/languages/korean
+	url = https://github.com/ianhubnet/csk-lang-korean.git
+[submodule "packages/languages/persian"]
+	path = packages/languages/persian
+	url = https://github.com/ianhubnet/csk-lang-persian.git
+[submodule "packages/languages/polish"]
+	path = packages/languages/polish
+	url = https://github.com/ianhubnet/csk-lang-polish.git
+[submodule "packages/languages/portuguese"]
+	path = packages/languages/portuguese
+	url = https://github.com/ianhubnet/csk-lang-portuguese.git
+[submodule "packages/languages/russian"]
+	path = packages/languages/russian
+	url = https://github.com/ianhubnet/csk-lang-russian.git
+[submodule "packages/languages/spanish"]
+	path = packages/languages/spanish
+	url = https://github.com/ianhubnet/csk-lang-spanish.git
+[submodule "packages/languages/taiwanese"]
+	path = packages/languages/taiwanese
+	url = https://github.com/ianhubnet/csk-lang-taiwanese.git
+[submodule "packages/languages/thai"]
+	path = packages/languages/thai
+	url = https://github.com/ianhubnet/csk-lang-thai.git
+[submodule "packages/languages/turkish"]
+	path = packages/languages/turkish
+	url = https://github.com/ianhubnet/csk-lang-turkish.git
+[submodule "packages/languages/vietnamese"]
+	path = packages/languages/vietnamese
+	url = https://github.com/ianhubnet/csk-lang-vietnamese.git
