@@ -23,7 +23,7 @@ Each subfolder contains official CSK components, many of which are private.
 | Type      | Description                                  | Access |
 | --------- | -------------------------------------------- | :----: |
 | Helpers   | Common utility functions                     |   🔒   |
-| Languages | Translation packs (via submodules)           |   🌐   |
+| Languages | Translation packs                            |   🔒   |
 | Libraries | Reusable backend logic                       |   🔒   |
 | Modules   | Extend core functionality (e.g., Blog, Shop) |   🔒   |
 | Plugins   | Add features or integrations                 |   🔒   |
@@ -63,8 +63,7 @@ New packages register themselves automatically when:
 ## 🔗 Related Repositories
 
 * [`csk-core`](https://github.com/ianhubnet) — Main CSK Framework *(Private)*
-* [`csk-app-default`](https://github.com/ianhubnet/csk-app-default) — Default boilerplate app *(Public)*
-* [`csk-languages`](https://github.com/ianhubnet/csk-languages) — All CSK translations *(Public index)*
+* [`csk-projects`](https://github.com/ianhubnet/csk-projects) — All CSK projects *(Public index)*
 
 ---
 
