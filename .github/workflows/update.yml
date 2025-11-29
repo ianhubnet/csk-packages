@@ -2,7 +2,7 @@ name: Update & Upload
 
 on:
   repository_dispatch:
-    types: [update-submodules]
+    types: [update]
 
 permissions:
   contents: write
