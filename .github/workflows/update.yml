@@ -1,0 +1,92 @@
+name: Update & Upload
+
+on:
+  repository_dispatch:
+    types: [update-submodules]
+
+permissions:
+  contents: write
+
+jobs:
+  update-and-upload:
+    runs-on: ubuntu-latest
+    env:
+      FTP_HOST: ${{ secrets.FTP_HOST }}
+      FTP_PORT: ${{ secrets.FTP_PORT }}
+      FTP_USER: ${{ secrets.FTP_USER }}
+      FTP_PASS: ${{ secrets.FTP_PASS }}
+      FTP_PATH: ${{ secrets.FTP_PATH }}
+      CSK_PAT: ${{ secrets.CSK_PAT }}
+      CSK_TYPES: ${{ vars.CSK_TYPES }}
+    steps:
+      # 1. Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CSK_PAT }}
+
+      # 2. Extract payload
+      - name: Set variables from payload
+        run: |
+          echo "NAME=${{ github.event.client_payload.name }}" >> $GITHUB_ENV
+          echo "TYPE=${{ github.event.client_payload.type }}" >> $GITHUB_ENV
+          echo "REPO=${{ github.event.client_payload.repo }}" >> $GITHUB_ENV
+
+      # 3. Validate type & compute plural folder
+      - name: Validate type and compute submodule path
+        id: path
+        run: |
+          TYPE_PLURAL=$(echo "$CSK_TYPES" | jq -r --arg key "$TYPE" '.[$key]')
+          if [ "$TYPE_PLURAL" = "null" ]; then
+            echo "❌ Type '$TYPE' not recognized, aborting."
+            exit 1
+          fi
+          SUB_PATH="packages/$TYPE_PLURAL/$NAME"
+          echo "TYPE_PLURAL=$TYPE_PLURAL" >> $GITHUB_ENV
+          echo "SUB_PATH=$SUB_PATH" >> $GITHUB_ENV
+          echo "✅ Submodule path will be $SUB_PATH"
+
+      # 4. Add or update submodule
+      - name: Add or update submodule
+        run: |
+          if [ -d "$SUB_PATH/.git" ]; then
+            echo "Updating existing submodule at $SUB_PATH"
+            git submodule set-url "$SUB_PATH" "https://github.com/$REPO"
+            git submodule update --remote "$SUB_PATH"
+          else
+            echo "Adding new submodule at $SUB_PATH"
+            mkdir -p "$(dirname "$SUB_PATH")"
+            git submodule add "https://github.com/$REPO" "$SUB_PATH"
+            git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
+            git submodule sync
+          fi
+
+      # 5. Commit submodule changes
+      - name: Commit submodule changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add .gitmodules "$SUB_PATH"
+          git commit -m "Update/add submodule: $TYPE/$NAME" || echo "Nothing to commit"
+          git push origin HEAD:main
+
+      # 6. Download latest release ZIP
+      - name: Download latest release ZIP
+        run: |
+          RELEASE_URL=$(gh release view --repo "$REPO" --json assets --jq '.assets[-1].url')
+          if [ -z "$RELEASE_URL" ]; then
+            echo "❌ No release found for $REPO"
+            exit 1
+          fi
+          ZIP_NAME="${NAME}.zip"
+          curl -L -H "Authorization: token $CSK_PAT" -o "$ZIP_NAME" "$RELEASE_URL"
+          echo "✅ Downloaded release ZIP as $ZIP_NAME"
+
+      # 7. Upload to FTP
+      - name: Upload ZIP to FTP
+        run: |
+          REMOTE_PATH="$FTP_PATH/$TYPE_PLURAL/$ZIP_NAME"
+          echo "Uploading $ZIP_NAME to $REMOTE_PATH"
+          curl -T "$ZIP_NAME" -u "$FTP_USER:$FTP_PASS" "ftp://$FTP_HOST:$FTP_PORT/$REMOTE_PATH"
+          echo "✅ Upload completed"
