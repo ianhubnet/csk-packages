@@ -115,3 +115,6 @@
 [submodule "packages/languages/vietnamese"]
 	path = packages/languages/vietnamese
 	url = https://github.com/ianhubnet/csk-lang-vietnamese.git
+[submodule "packages/modules/test"]
+	path = packages/modules/test
+	url = https://github.com/ianhubnet/csk-module-test
