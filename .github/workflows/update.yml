@@ -1,0 +1,61 @@
+name: Update Submodules Test
+
+on:
+  repository_dispatch:
+    types: [update-submodules]
+
+permissions:
+  contents: write
+
+jobs:
+  update-submodules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set variables from payload
+        id: vars
+        run: |
+          echo "NAME=${{ github.event.client_payload.name }}" >> $GITHUB_ENV
+          echo "TYPE=${{ github.event.client_payload.type }}" >> $GITHUB_ENV
+          echo "REPO=${{ github.event.client_payload.repo }}" >> $GITHUB_ENV
+
+      - name: Compute submodule path
+        id: submodule
+        run: |
+          # CSK_TYPES JSON variable (from repo variables)
+          ALLOWED_TYPES='${{ vars.CSK_TYPES }}'
+
+          # Extract folder name for the type
+          TYPE_PLURAL=$(echo "$ALLOWED_TYPES" | jq -r --arg key "$TYPE" '.[$key]')
+
+          if [ "$TYPE_PLURAL" = "null" ]; then
+            echo "Type '$TYPE' not recognized, skipping..."
+            exit 0
+          fi
+
+          SUB_PATH="packages/$TYPE_PLURAL/$NAME"
+          echo "SUB_PATH=$SUB_PATH" >> $GITHUB_ENV
+          echo "TYPE_PLURAL=$TYPE_PLURAL" >> $GITHUB_ENV
+
+      - name: Add or update submodule
+        run: |
+          if [ -d "$SUB_PATH/.git" ]; then
+            echo "Updating existing submodule at $SUB_PATH"
+            git submodule set-url "$SUB_PATH" "$REPO"
+            git submodule update --remote "$SUB_PATH"
+          else
+            echo "Adding new submodule at $SUB_PATH"
+            git submodule add "$REPO" "$SUB_PATH"
+          fi
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update submodule $NAME ($TYPE_PLURAL)" || echo "Nothing to commit"
+          git push origin HEAD:main
