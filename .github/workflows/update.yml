@@ -17,14 +17,13 @@ jobs:
       FTP_PASS: ${{ secrets.FTP_PASS }}
       FTP_PATH: ${{ secrets.FTP_PATH }}
       CSK_PAT: ${{ secrets.CSK_PAT }}
-      CSK_TYPES: ${{ vars.CSK_TYPES }}
     steps:
       # 1. Checkout repo
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           token: ${{ secrets.CSK_PAT }}
+          submodules: true
 
       # 2. Extract payload
       - name: Set variables from payload
@@ -37,7 +36,8 @@ jobs:
       - name: Validate type and compute submodule path
         id: path
         run: |
-          TYPE_PLURAL=$(echo "$CSK_TYPES" | jq -r --arg key "$TYPE" '.[$key]')
+          ALLOWED_TYPES='${{ vars.CSK_TYPES }}'
+          TYPE_PLURAL=$(echo "$ALLOWED_TYPES" | jq -r --arg key "$TYPE" '.[$key]')
           if [ "$TYPE_PLURAL" = "null" ]; then
             echo "❌ Type '$TYPE' not recognized, aborting."
             exit 1
@@ -57,19 +57,48 @@ jobs:
           else
             echo "Adding new submodule at $SUB_PATH"
             mkdir -p "$(dirname "$SUB_PATH")"
-            git submodule add "https://github.com/$REPO" "$SUB_PATH"
+            git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
             git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
+            sed -i "s|https://.*@github.com/|https://github.com/|g" .gitmodules
             git submodule sync
           fi
 
       # 5. Commit submodule changes
       - name: Commit submodule changes
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git add "$SUB_PATH"
+
+          # Always add submodule path and .gitmodules in case it was added/changed
           git add .gitmodules "$SUB_PATH"
-          git commit -m "Update/add submodule: $TYPE/$NAME" || echo "Nothing to commit"
-          git push origin HEAD:main
+
+          # Fetch latest remote and merge only if nothing staged
+          git fetch origin main
+
+          if git diff --cached --quiet; then
+            echo "🟢 No staged changes. Safe to pull..."
+            git merge --ff-only origin/main
+          else
+            echo "⚠️ Skipping merge to avoid overwriting staged submodule updates."
+          fi
+
+          if git diff --cached --quiet; then
+            echo "🟡 No changes to commit."
+          else
+            echo "📝 Committing changes..."
+            git commit -m "Auto-update/add submodule: $TYPE/${NAME:-unknown}"
+          fi
+
+          echo "🚀 Pushing to origin (with retry)..."
+          for i in 1 2 3; do
+            git push && break || {
+              echo "❌ Push failed. Retry #$i in 3s..."
+              sleep 3
+            }
+          done
+
+          git status -sb
+
+          echo "✅ Done."
 
       # 6. Download latest release ZIP
       - name: Download latest release ZIP
