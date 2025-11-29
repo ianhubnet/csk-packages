@@ -32,38 +32,23 @@ jobs:
       - name: Add or Update Submodule
         shell: bash
         env:
-          ACCEPTED_TYPES: ${{ vars.CSK_ACCEPTS }}
+          CSK_TYPES: ${{ vars.CSK_TYPES }}
         run: |
           TYPE="${{ github.event.client_payload.type }}"
+          TYPE_PLURAL=$(echo "$CSK_TYPES" | jq -r --arg key "$TYPE" '.[$key]')
 
-          # Abort if TYPE is not one of the accepted values
-          if ! [[ "$ACCEPTED_TYPES" =~ (^|[|])"$TYPE"($|[|]) ]]; then
-            echo "❌ Invalid TYPE: '$TYPE'. Must be one of: $(echo "$ACCEPTED_TYPES" | tr '|' ', ')."
+          if [ "$TYPE_PLURAL" = "null" ]; then
+            echo "❌ Invalid TYPE: '$TYPE'. Must be one of: $(echo "$CSK_TYPES" | jq -r 'keys | join(", ")')"
             exit 1
           fi
 
           REPO="${{ github.event.client_payload.repo }}"
           NAME="${{ github.event.client_payload.name }}"
-          STRIP="${{ github.event.client_payload.strip }}"
+          SUB_PATH="packages/$TYPE_PLURAL/$NAME"
 
           echo "➡️ Type: $TYPE"
           echo "📦 Name: $NAME"
           echo "🔗 Repo: $REPO"
-          echo "✂️ Strip: $STRIP"
-
-          # Determine the local submodule directory name
-          if [ -n "$STRIP" ]; then
-            DIR_NAME="${NAME#"$STRIP"}"
-          else
-            DIR_NAME="${NAME##*-}" # fallback to last part after dash
-          fi
-
-          if [ "$TYPE" = "languages" ]; then
-            SUB_PATH="packages/$DIR_NAME"
-          else
-            SUB_PATH="packages/$TYPE/$DIR_NAME"
-          fi
-
           echo "📂 Submodule path: $SUB_PATH"
 
           if [ -d "$SUB_PATH" ]; then
@@ -99,7 +84,7 @@ jobs:
             echo "🟡 No changes to commit."
           else
             echo "📝 Committing changes..."
-            git commit -m "Auto-update/add submodule: $TYPE/${NAME:-unknown}"
+            git commit -m "Auto-update/add submodule: $TYPE_PLURAL/${NAME:-unknown}"
           fi
 
           echo "🚀 Pushing to origin (with retry)..."
