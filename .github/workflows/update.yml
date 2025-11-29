@@ -104,6 +104,8 @@ jobs:
 
       - name: Download latest release ZIP
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.CSK_PAT }}
         run: |
           ZIP_NAME="${NAME}.zip"
           RELEASE_URL=$(gh release view --repo "$REPO" --json assets --jq '.assets[-1].url')
