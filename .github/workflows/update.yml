@@ -40,67 +40,55 @@ jobs:
       - name: Add or Update Submodule
         shell: bash
         env:
-          CSK_TYPES: ${{ vars.CSK_TYPES }}
+          ACCEPTED_TYPES: ${{ vars.CSK_TYPES }}
+          CSK_PAT: ${{ secrets.CSK_PAT }}
         run: |
           TYPE="${{ github.event.client_payload.type }}"
-          NAME="${{ github.event.client_payload.name }}"
           REPO="${{ github.event.client_payload.repo }}"
+          NAME="${{ github.event.client_payload.name }}"
 
-          # Validate TYPE against CSK_TYPES JSON
-          TYPE_PLURAL=$(echo "$CSK_TYPES" | jq -r --arg key "$TYPE" '.[$key]')
+          # Validate type
+          TYPE_PLURAL=$(echo "$ACCEPTED_TYPES" | jq -r --arg key "$TYPE" '.[$key]')
           if [ "$TYPE_PLURAL" = "null" ]; then
-            echo "❌ Invalid TYPE: '$TYPE'. Must be one of: $(echo "$CSK_TYPES" | jq -r 'keys | join(", ")')"
+            echo "❌ Invalid TYPE: '$TYPE'."
             exit 1
           fi
 
-          # Determine submodule path
+          # Compute submodule path
           SUB_PATH="packages/$TYPE_PLURAL/$NAME"
-
-          echo "➡️ Type: $TYPE"
-          echo "📦 Name: $NAME"
-          echo "🔗 Repo: $REPO"
           echo "📂 Submodule path: $SUB_PATH"
 
-          if [ -d "$SUB_PATH" ]; then
-            echo "✅ Submodule exists. Updating..."
-            git submodule update --remote "$SUB_PATH"
+          # Add or update submodule
+          if [ -d "$SUB_PATH/.git" ]; then
+            echo "✅ Updating existing submodule at $SUB_PATH"
+            git -C "$SUB_PATH" fetch origin
+            git -C "$SUB_PATH" merge --ff-only origin/main || echo "⚠️ Already up-to-date or merge skipped"
           else
-            echo "➕ Submodule doesn't exist. Adding it..."
+            echo "➕ Adding new submodule at $SUB_PATH"
             mkdir -p "$(dirname "$SUB_PATH")"
-            git submodule add "https://${CSK_PAT}@github.com/$REPO" "$SUB_PATH"
+            git submodule add "https://$CSK_PAT@github.com/$REPO" "$SUB_PATH"
             git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
             git submodule sync
           fi
 
-          git add "$SUB_PATH"
-          git add .gitmodules "$SUB_PATH"
+          # Stage changes only for this submodule
+          git add "$SUB_PATH" .gitmodules
 
-          git fetch origin main
-
-          if git diff --cached --quiet; then
-            echo "🟢 No staged changes. Safe to pull..."
-            git merge --ff-only origin/main || echo "⚠️ Nothing to merge"
-          else
-            echo "⚠️ Skipping merge to avoid overwriting staged submodule updates."
-          fi
-
-          if git diff --cached --quiet; then
-            echo "🟡 No changes to commit."
-          else
-            echo "📝 Committing changes..."
+          # Commit if changes exist
+          if ! git diff --cached --quiet; then
+            git config user.name "ianhub-bot"
+            git config user.email "bot@ianhub.net"
             git commit -m "Auto-update/add submodule: $TYPE/$NAME"
+            echo "🚀 Pushing changes..."
+            for i in 1 2 3; do
+              git push origin HEAD:main && break || {
+                echo "❌ Push failed. Retry #$i in 3s..."
+                sleep 3
+              }
+            done
+          else
+            echo "🟢 No changes to commit for $SUB_PATH."
           fi
-
-          echo "🚀 Pushing to origin (with retry)..."
-          for i in 1 2 3; do
-            git push && break || {
-              echo "❌ Push failed. Retry #$i in 3s..."
-              sleep 3
-            }
-          done
-
-          git status -sb
-          echo "✅ Submodule update done."
 
       - name: Download latest release ZIP
         shell: bash
