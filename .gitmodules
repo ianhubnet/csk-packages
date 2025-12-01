@@ -118,3 +118,6 @@
 [submodule "packages/languages/romanian"]
 	path = packages/languages/romanian
 	url = https://github.com/ianhubnet/csk-lang-romanian
+[submodule "packages/languages/hungarian"]
+	path = packages/languages/hungarian
+	url = https://github.com/ianhubnet/csk-lang-hungarian
