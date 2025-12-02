@@ -5,7 +5,7 @@ on:
     types: [update-submodules]
 
 concurrency:
-  group: update-submodules-${{ github.event.client_payload.type }}
+  group: update-submodules-${{ github.event.client_payload.type }}-${{ github.event.client_payload.name }}
   cancel-in-progress: false
 
 jobs:
@@ -18,6 +18,10 @@ jobs:
         with:
           token: ${{ secrets.CSK_PAT }}
           submodules: true
+
+      - name: Set up Bash (ensure shell with coreutils)
+        shell: bash
+        run: echo "Shell ready with core utilities"
 
       - name: Configure Git identity
         shell: bash
@@ -41,6 +45,7 @@ jobs:
           REPO="${{ github.event.client_payload.repo }}"
           NAME="${{ github.event.client_payload.name }}"
           SUB_PATH="packages/$TYPE_PLURAL/$NAME"
+
           echo "➡️ Type: $TYPE"
           echo "📦 Name: $NAME"
           echo "🔗 Repo: $REPO"
@@ -53,26 +58,43 @@ jobs:
             echo "➕ Submodule doesn't exist. Adding it..."
             mkdir -p "$(dirname "$SUB_PATH")"
             git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
+
+            # Cleanup the URL from .gitmodules
             git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
+            sed -i "s|https://.*@github.com/|https://github.com/|g" .gitmodules
             git submodule sync
           fi
 
-          git add "$SUB_PATH" .gitmodules
+          git add "$SUB_PATH"
 
-          # Commit if any changes
+          # Always add submodule path and .gitmodules in case it was added/changed
+          git add .gitmodules "$SUB_PATH"
+
+          # Fetch latest remote and merge only if nothing staged
+          git fetch origin main
+
+          if git diff --cached --quiet; then
+            echo "🟢 No staged changes. Safe to pull..."
+            git merge --ff-only origin/main
+          else
+            echo "⚠️ Skipping merge to avoid overwriting staged submodule updates."
+          fi
+
           if git diff --cached --quiet; then
             echo "🟡 No changes to commit."
           else
+            echo "📝 Committing changes..."
             git commit -m "Auto-update/add submodule: $TYPE_PLURAL/${NAME:-unknown}"
           fi
 
-          # Robust push loop: retries if remote changed
-          until git push; do
-            echo "❌ Push failed. Pulling latest changes and retrying..."
-            git fetch origin main
-            git merge --ff-only origin/main || exit 1
-            sleep 2
+          echo "🚀 Pushing to origin (with retry)..."
+          for i in 1 2 3; do
+            git push && break || {
+              echo "❌ Push failed. Retry #$i in 3s..."
+              sleep 3
+            }
           done
 
           git status -sb
+
           echo "✅ Done."
