@@ -133,3 +133,6 @@
 [submodule "packages/languages/croatian"]
 	path = packages/languages/croatian
 	url = https://github.com/ianhubnet/csk-lang-croatian
+[submodule "packages/languages/slovak"]
+	path = packages/languages/slovak
+	url = https://github.com/ianhubnet/csk-lang-slovak
