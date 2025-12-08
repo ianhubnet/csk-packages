@@ -151,3 +151,6 @@
 [submodule "packages/languages/norwegian"]
 	path = packages/languages/norwegian
 	url = https://github.com/ianhubnet/csk-lang-norwegian
+[submodule "packages/languages/slovenian"]
+	path = packages/languages/slovenian
+	url = https://github.com/ianhubnet/csk-lang-slovenian
