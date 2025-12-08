@@ -40,8 +40,8 @@ Each subfolder contains official CSK components, many of which are private.
 New packages register themselves automatically when:
 - They follow the naming convention `csk-<type>-<name>`.
 - They define the following repository variables:
-  - `CSK_STRIP` → prefix to strip (e.g., `csk-module-`).
-  - `CSK_TYPE` → type of the package (`modules`, `themes`, etc.).
+  - `CSK_NAME` → name of the package (e.g., `pages`).
+  - `CSK_TYPE` → type of the package (`module`, `theme`, etc.).
   - `CSK_PAT` → personal access token for communication.
 
 > 🪄 This system allows decentralized development while maintaining a synchronized ecosystem.
@@ -49,11 +49,11 @@ New packages register themselves automatically when:
 ---
 
 ## Example
-| Type | Example Repo | CSK_STRIP | CSK_TYPE | CSK_PAT | Added Under |
+| Type | Example Repo | CSK_NAME | CSK_TYPE | CSK_PAT | Added Under |
 |------|--------------|-----------|----------|---------|-------------|
-| Module | `csk-module-pages` | `csk-module-` | `modules` | `<secret>` | `packages/modules/pages` |
-| Theme | `csk-theme-default` | `csk-theme-` | `themes` | `<secret>` | `packages/themes/default` |
-| Helper | `csk-helper-array` | `csk-helper-` | `helpers` | `<secret>` | `packages/helpers/array` |
+| Module | `csk-module-pages` | `pages` | `module` | `<secret>` | `packages/modules/pages` |
+| Theme | `csk-theme-classic` | `classic` | `theme` | `<secret>` | `packages/themes/classic` |
+| Helper | `csk-helper-array` | `array` | `helper` | `<secret>` | `packages/helpers/array` |
 
 ---
 
