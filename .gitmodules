@@ -139,3 +139,6 @@
 [submodule "packages/languages/danish"]
 	path = packages/languages/danish
 	url = https://github.com/ianhubnet/csk-lang-danish
+[submodule "packages/languages/finnish"]
+	path = packages/languages/finnish
+	url = https://github.com/ianhubnet/csk-lang-finnish
