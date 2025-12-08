@@ -142,3 +142,6 @@
 [submodule "packages/languages/finnish"]
 	path = packages/languages/finnish
 	url = https://github.com/ianhubnet/csk-lang-finnish
+[submodule "packages/languages/latvian"]
+	path = packages/languages/latvian
+	url = https://github.com/ianhubnet/csk-lang-latvian
