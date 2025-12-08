@@ -145,3 +145,6 @@
 [submodule "packages/languages/latvian"]
 	path = packages/languages/latvian
 	url = https://github.com/ianhubnet/csk-lang-latvian
+[submodule "packages/languages/lithuanian"]
+	path = packages/languages/lithuanian
+	url = https://github.com/ianhubnet/csk-lang-lithuanian
