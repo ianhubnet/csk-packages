@@ -160,3 +160,31 @@ jobs:
           exclude: |
             **/*
             !${{ env.ZIP }}
+
+      # - name: Send JSON-RPC
+      #   shell: bash
+      #   env:
+      #     RPC_URL: ${{ secrets.RPC_URL }}
+      #     RPC_KEY: ${{ secrets.RPC_KEY }}
+      #     RPC_VER: ${{ secrets.RPC_VER }}
+      #   run: |
+      #     REPO="${{ github.event.client_payload.repo }}"
+      #     OWNER="${REPO%%/*}"
+      #     NAME="${{ github.event.client_payload.name }}"
+      #     TYPE="${{ needs.update.outputs.type }}"
+      #     ID=$(openssl rand -hex 8)
+
+      #     curl -s -X POST "$RPC_URL" \
+      #       -H "Content-Type: application/json" \
+      #       -H "Authorization: Bearer $RPC_KEY" \
+      #       -d "{
+      #         \"jsonrpc\": \"$RPC_VER\",
+      #         \"method\": \"update\",
+      #         \"params\": {
+      #           \"owner\": \"$OWNER\",
+      #           \"name\": \"$NAME\",
+      #           \"version\": \"${{ env.VERSION }}\",
+      #           \"type\": \"$TYPE\"
+      #         },
+      #         \"id\": \"$ID\"
+      #       }"
