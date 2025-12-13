@@ -10,7 +10,12 @@ concurrency:
 
 jobs:
   update:
+    name: Update Package Submodule
     runs-on: ubuntu-latest
+    outputs:
+      type: ${{ steps.set-vars.outputs.type }}
+      type_plural: ${{ steps.set-vars.outputs.type_plural }}
+      name: ${{ github.event.client_payload.name }}
 
     steps:
       - name: Checkout repo with submodules
@@ -28,6 +33,18 @@ jobs:
         run: |
           git config user.name "ianhub-bot"
           git config user.email "bot@ianhub.net"
+
+      - name: Set vars for later jobs
+        id: set-vars
+        shell: bash
+        env:
+          CSK_TYPES: ${{ vars.CSK_TYPES }}
+        run: |
+          TYPE="${{ github.event.client_payload.type }}"
+          TYPE_PLURAL=$(echo "$CSK_TYPES" | jq -r --arg key "$TYPE" '.[$key]')
+
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+          echo "type_plural=$TYPE_PLURAL" >> $GITHUB_OUTPUT
 
       - name: Add or Update Submodule
         shell: bash
@@ -98,3 +115,48 @@ jobs:
           git status -sb
 
           echo "✅ Done."
+
+  post-update:
+    name: Upload Package Release to FTP
+    needs: update
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download latest release ZIP
+        run: |
+          REPO="${{ github.event.client_payload.repo }}"
+          NAME="${{ github.event.client_payload.name }}"
+          API_URL="https://api.github.com/repos/$REPO/releases/latest"
+
+          echo "🔍 Fetching latest release metadata..."
+          curl -L -H "Authorization: token ${{ secrets.CSK_PAT }}" \
+            "$API_URL" > latest.json
+
+          ZIP_URL=$(jq -r '.assets[0].browser_download_url' latest.json)
+          VERSION=$(jq -r '.tag_name' latest.json)
+
+          echo "📦 Version: $VERSION"
+          echo "📥 ZIP URL: $ZIP_URL"
+
+          if [ -z "$ZIP_URL" ] || [ "$ZIP_URL" == "null" ]; then
+            echo "❌ No release asset found. Aborting."
+            exit 1
+          fi
+
+          curl -L -o "${NAME}.zip" "$ZIP_URL"
+
+          echo "ZIP=${NAME}.zip" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Upload to FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          port: ${{ secrets.FTP_PORT }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          local-dir: ./
+          server-dir: ${{ secrets.FTP_PATH }}${{ needs.update.outputs.type_plural }}/
+          exclude: |
+            **/*
+            !${{ env.ZIP }}
