@@ -169,9 +169,10 @@ jobs:
       #     RPC_VER: ${{ secrets.RPC_VER }}
       #   run: |
       #     REPO="${{ github.event.client_payload.repo }}"
-      #     OWNER="${REPO%%/*}"
-      #     NAME="${{ github.event.client_payload.name }}"
       #     TYPE="${{ needs.update.outputs.type }}"
+      #     PACKAGE="${{ github.event.client_payload.name }}"
+      #     OWNER="${REPO%%/*}"
+      #     NAME="${REPO##*/}"
       #     ID=$(openssl rand -hex 8)
 
       #     curl -s -X POST "$RPC_URL" \
@@ -181,10 +182,11 @@ jobs:
       #         \"jsonrpc\": \"$RPC_VER\",
       #         \"method\": \"update\",
       #         \"params\": {
+      #           \"type\": \"$TYPE\",
+      #           \"package\": \"$PACKAGE\",
       #           \"owner\": \"$OWNER\",
       #           \"name\": \"$NAME\",
-      #           \"version\": \"${{ env.VERSION }}\",
-      #           \"type\": \"$TYPE\"
+      #           \"version\": \"${{ env.VERSION }}\"
       #         },
       #         \"id\": \"$ID\"
       #       }"
