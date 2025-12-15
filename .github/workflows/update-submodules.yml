@@ -72,7 +72,10 @@ jobs:
             echo "🔍 Submodule exists. Verifying repository URL..."
 
             # Normalize existing and expected URLs
-            EXISTING_URL=$(git config -f .gitmodules --get submodule."$SUB_PATH".url \ | sed -E 's|https://.*@github.com/|https://github.com/|' \ | sed 's|\.git$||')
+            EXISTING_URL=$(git config -f .gitmodules --get submodule."$SUB_PATH".url \
+              | sed -E 's|https://.*@github.com/|https://github.com/|' \
+              | sed 's|\.git$||')
+
             EXPECTED_URL=$(echo "https://github.com/$REPO" | sed 's|\.git$||')
 
             if [ "$EXISTING_URL" != "$EXPECTED_URL" ]; then
