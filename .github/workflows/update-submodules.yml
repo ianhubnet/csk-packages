@@ -15,18 +15,13 @@ jobs:
     outputs:
       type: ${{ steps.set-vars.outputs.type }}
       type_plural: ${{ steps.set-vars.outputs.type_plural }}
-      name: ${{ github.event.client_payload.name }}
 
     steps:
       - name: Checkout repo with submodules
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.CSK_PAT }}
-          submodules: true
-
-      - name: Set up Bash (ensure shell with coreutils)
-        shell: bash
-        run: echo "Shell ready with core utilities"
+          submodules: false
 
       - name: Configure Git identity
         shell: bash
@@ -61,15 +56,28 @@ jobs:
 
           REPO="${{ github.event.client_payload.repo }}"
           NAME="${{ github.event.client_payload.name }}"
-          SUB_PATH="packages/$TYPE_PLURAL/$NAME"
+          if [ -z "$REPO" ] || [ -z "$NAME" ]; then
+            echo "❌ Missing required payload fields."
+            exit 1
+          fi
 
+          SUB_PATH="packages/$TYPE_PLURAL/$NAME"
           echo "➡️ Type: $TYPE"
           echo "📦 Name: $NAME"
           echo "🔗 Repo: $REPO"
           echo "📂 Submodule path: $SUB_PATH"
 
-          if [ -d "$SUB_PATH" ]; then
-            echo "✅ Submodule exists. Updating..."
+          if git config -f .gitmodules --get submodule."$SUB_PATH".url >/dev/null; then
+            echo "🔍 Submodule exists. Verifying repository URL..."
+
+            EXISTING_URL=$(git config -f .gitmodules --get submodule."$SUB_PATH".url)
+            EXPECTED_URL="https://github.com/$REPO"
+            if [ "$EXISTING_URL" != "$EXPECTED_URL" ]; then
+              echo "❌ Repository mismatch detected!"
+              exit 1
+            fi
+
+            echo "✅ Repository verified. Updating..."
             git submodule update --remote "$SUB_PATH"
           else
             echo "➕ Submodule doesn't exist. Adding it..."
@@ -82,9 +90,6 @@ jobs:
             git submodule sync
           fi
 
-          git add "$SUB_PATH"
-
-          # Always add submodule path and .gitmodules in case it was added/changed
           git add .gitmodules "$SUB_PATH"
 
           # Fetch latest remote and merge only if nothing staged
@@ -132,7 +137,7 @@ jobs:
           curl -L -H "Authorization: token ${{ secrets.CSK_PAT }}" \
             "$API_URL" > latest.json
 
-          ZIP_URL=$(jq -r '.assets[0].browser_download_url' latest.json)
+          ZIP_URL=$(jq -r '.assets[] | select(.name | endswith(".zip")) | .browser_download_url' latest.json | head -n 1)
           VERSION=$(jq -r '.tag_name' latest.json)
 
           echo "📦 Version: $VERSION"
@@ -169,6 +174,7 @@ jobs:
       #     RPC_VER: ${{ secrets.RPC_VER }}
       #   run: |
       #     REPO="${{ github.event.client_payload.repo }}"
+      #     REPO_URL="https://github.com/$REPO"
       #     TYPE="${{ needs.update.outputs.type }}"
       #     PACKAGE="${{ github.event.client_payload.name }}"
       #     OWNER="${REPO%%/*}"
@@ -184,6 +190,7 @@ jobs:
       #         \"params\": {
       #           \"type\": \"$TYPE\",
       #           \"package\": \"$PACKAGE\",
+      #           \"repo\": \"$REPO_URL\",
       #           \"owner\": \"$OWNER\",
       #           \"name\": \"$NAME\",
       #           \"version\": \"${{ env.VERSION }}\"
