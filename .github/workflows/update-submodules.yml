@@ -71,9 +71,9 @@ jobs:
           if git config -f .gitmodules --get submodule."$SUB_PATH".url >/dev/null; then
             echo "🔍 Submodule exists. Verifying repository URL..."
 
-            # Normalize existing URL by stripping token if present
-            EXISTING_URL=$(git config -f .gitmodules --get submodule."$SUB_PATH".url | sed 's|https://.*@github.com/|https://github.com/|')
-            EXPECTED_URL="https://github.com/$REPO"
+            # Normalize existing and expected URLs
+            EXISTING_URL=$(git config -f .gitmodules --get submodule."$SUB_PATH".url \ | sed -E 's|https://.*@github.com/|https://github.com/|' \ | sed 's|\.git$||')
+            EXPECTED_URL=$(echo "https://github.com/$REPO" | sed 's|\.git$||')
 
             if [ "$EXISTING_URL" != "$EXPECTED_URL" ]; then
               echo "❌ Repository mismatch detected!"
