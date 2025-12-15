@@ -84,7 +84,7 @@ jobs:
             fi
 
             echo "✅ Repository verified. Updating..."
-            git submodule update --remote "$SUB_PATH"
+            git submodule update --init --remote "$SUB_PATH"
           else
             echo "➕ Submodule doesn't exist. Adding it..."
             mkdir -p "$(dirname "$SUB_PATH")"
