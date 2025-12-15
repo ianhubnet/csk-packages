@@ -67,11 +67,14 @@ jobs:
           echo "🔗 Repo: $REPO"
           echo "📂 Submodule path: $SUB_PATH"
 
+          # Check if submodule exists
           if git config -f .gitmodules --get submodule."$SUB_PATH".url >/dev/null; then
             echo "🔍 Submodule exists. Verifying repository URL..."
 
-            EXISTING_URL=$(git config -f .gitmodules --get submodule."$SUB_PATH".url)
+            # Normalize existing URL by stripping token if present
+            EXISTING_URL=$(git config -f .gitmodules --get submodule."$SUB_PATH".url | sed 's|https://.*@github.com/|https://github.com/|')
             EXPECTED_URL="https://github.com/$REPO"
+
             if [ "$EXISTING_URL" != "$EXPECTED_URL" ]; then
               echo "❌ Repository mismatch detected!"
               exit 1
@@ -82,26 +85,26 @@ jobs:
           else
             echo "➕ Submodule doesn't exist. Adding it..."
             mkdir -p "$(dirname "$SUB_PATH")"
-            git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
 
-            # Cleanup the URL from .gitmodules
+            # Add using token for authentication, then normalize URL
+            git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
             git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
-            sed -i "s|https://.*@github.com/|https://github.com/|g" .gitmodules
             git submodule sync
           fi
 
+          # Stage submodule changes
           git add .gitmodules "$SUB_PATH"
 
-          # Fetch latest remote and merge only if nothing staged
+          # Pull latest main if nothing staged
           git fetch origin main
-
           if git diff --cached --quiet; then
             echo "🟢 No staged changes. Safe to pull..."
-            git merge --ff-only origin/main
+            git merge --ff-only origin/main || true
           else
             echo "⚠️ Skipping merge to avoid overwriting staged submodule updates."
           fi
 
+          # Commit if needed
           if git diff --cached --quiet; then
             echo "🟡 No changes to commit."
           else
@@ -109,6 +112,7 @@ jobs:
             git commit -m "Auto-update/add submodule: $TYPE_PLURAL/${NAME:-unknown}"
           fi
 
+          # Push with retry
           echo "🚀 Pushing to origin (with retry)..."
           for i in 1 2 3; do
             git push && break || {
