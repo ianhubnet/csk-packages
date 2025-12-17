@@ -23,6 +23,10 @@ jobs:
           token: ${{ secrets.CSK_PAT }}
           submodules: false
 
+      - name: Configure GitHub auth for submodules
+        run: |
+          git config --global url."https://${{ secrets.CSK_PAT }}@github.com/".insteadOf "https://github.com/"
+
       - name: Configure Git identity
         shell: bash
         run: |
