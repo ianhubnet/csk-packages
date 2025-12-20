@@ -13,8 +13,10 @@ jobs:
     name: Update Package Submodule
     runs-on: ubuntu-latest
     outputs:
-      type: ${{ steps.set-vars.outputs.type }}
-      type_plural: ${{ steps.set-vars.outputs.type_plural }}
+      type: ${{ steps.submodule.outputs.type }}
+      type_plural: ${{ steps.submodule.outputs.type_plural }}
+      repo: ${{ steps.submodule.outputs.repo }}
+      name: ${{ steps.submodule.outputs.name }}
 
     steps:
       - name: Checkout repo with submodules
@@ -23,29 +25,15 @@ jobs:
           token: ${{ secrets.CSK_PAT }}
           submodules: false
 
-      - name: Configure GitHub auth for submodules
-        run: |
-          git config --global url."https://${{ secrets.CSK_PAT }}@github.com/".insteadOf "https://github.com/"
-
-      - name: Configure Git identity
+      - name: Configure GitHub auth and identity
         shell: bash
         run: |
+          git config --global url."https://${{ secrets.CSK_PAT }}@github.com/".insteadOf "https://github.com/"
           git config user.name "ianhub-bot"
           git config user.email "bot@ianhub.net"
 
-      - name: Set vars for later jobs
-        id: set-vars
-        shell: bash
-        env:
-          CSK_TYPES: ${{ vars.CSK_TYPES }}
-        run: |
-          TYPE="${{ github.event.client_payload.type }}"
-          TYPE_PLURAL=$(echo "$CSK_TYPES" | jq -r --arg key "$TYPE" '.[$key]')
-
-          echo "type=$TYPE" >> $GITHUB_OUTPUT
-          echo "type_plural=$TYPE_PLURAL" >> $GITHUB_OUTPUT
-
       - name: Add or Update Submodule
+        id: submodule
         shell: bash
         env:
           CSK_TYPES: ${{ vars.CSK_TYPES }}
@@ -76,10 +64,7 @@ jobs:
             echo "🔍 Submodule exists. Verifying repository URL..."
 
             # Normalize existing and expected URLs
-            EXISTING_URL=$(git config -f .gitmodules --get submodule."$SUB_PATH".url \
-              | sed -E 's|https://.*@github.com/|https://github.com/|' \
-              | sed 's|\.git$||')
-
+            EXISTING_URL=$(git config -f .gitmodules --get submodule."$SUB_PATH".url | sed -E 's|https://.*@github.com/|https://github.com/|' | sed 's|\.git$||')
             EXPECTED_URL=$(echo "https://github.com/$REPO" | sed 's|\.git$||')
 
             if [ "$EXISTING_URL" != "$EXPECTED_URL" ]; then
@@ -103,10 +88,10 @@ jobs:
           git add .gitmodules "$SUB_PATH"
 
           # Pull latest main if nothing staged
-          git fetch origin main
+          git fetch origin main --quiet
           if git diff --cached --quiet; then
             echo "🟢 No staged changes. Safe to pull..."
-            git merge --ff-only origin/main || true
+            git merge --ff-only origin/main --quiet || true
           else
             echo "⚠️ Skipping merge to avoid overwriting staged submodule updates."
           fi
@@ -131,6 +116,10 @@ jobs:
           git status -sb
 
           echo "✅ Done."
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+          echo "type_plural=$TYPE_PLURAL" >> $GITHUB_OUTPUT
+          echo "repo=$REPO" >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> $GITHUB_OUTPUT
 
   post-update:
     name: Upload Package Release to FTP
@@ -140,13 +129,12 @@ jobs:
     steps:
       - name: Download latest release ZIP
         run: |
-          REPO="${{ github.event.client_payload.repo }}"
-          NAME="${{ github.event.client_payload.name }}"
+          REPO="${{ needs.update.outputs.repo }}"
+          NAME="${{ needs.update.outputs.name }}"
           API_URL="https://api.github.com/repos/$REPO/releases/latest"
 
           echo "🔍 Fetching latest release metadata..."
-          curl -L -H "Authorization: token ${{ secrets.CSK_PAT }}" \
-            "$API_URL" > latest.json
+          curl -L -H "Authorization: token ${{ secrets.CSK_PAT }}" "$API_URL" > latest.json
 
           ZIP_URL=$(jq -r '.assets[] | select(.name | endswith(".zip")) | .browser_download_url' latest.json | head -n 1)
           VERSION=$(jq -r '.tag_name' latest.json)
@@ -184,12 +172,12 @@ jobs:
       #     RPC_KEY: ${{ secrets.RPC_KEY }}
       #     RPC_VER: ${{ secrets.RPC_VER }}
       #   run: |
-      #     REPO="${{ github.event.client_payload.repo }}"
+      #     REPO="${{ needs.update.outputs.repo }}"
       #     REPO_URL="https://github.com/$REPO"
       #     TYPE="${{ needs.update.outputs.type }}"
-      #     PACKAGE="${{ github.event.client_payload.name }}"
+      #     PACKAGE="${{ needs.update.outputs.name }}"
       #     OWNER="${REPO%%/*}"
-      #     NAME="${REPO##*/}"
+      #     NAME="${{ needs.update.outputs.name }}"
       #     ID=$(openssl rand -hex 8)
 
       #     curl -s -X POST "$RPC_URL" \
