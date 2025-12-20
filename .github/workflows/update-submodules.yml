@@ -177,7 +177,7 @@ jobs:
       #     TYPE="${{ needs.update.outputs.type }}"
       #     PACKAGE="${{ needs.update.outputs.name }}"
       #     OWNER="${REPO%%/*}"
-      #     NAME="${{ needs.update.outputs.name }}"
+      #     NAME="${REPO##*/}"
       #     ID=$(openssl rand -hex 8)
 
       #     curl -s -X POST "$RPC_URL" \
