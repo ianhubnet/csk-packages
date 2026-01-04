@@ -160,3 +160,6 @@
 [submodule "packages/languages/bengali"]
 	path = packages/languages/bengali
 	url = https://github.com/ianhubnet/csk-lang-bengali
+[submodule "packages/languages/filipino"]
+	path = packages/languages/filipino
+	url = https://github.com/ianhubnet/csk-lang-filipino
