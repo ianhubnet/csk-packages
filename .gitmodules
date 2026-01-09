@@ -166,3 +166,6 @@
 [submodule "packages/languages/swedish"]
 	path = packages/languages/swedish
 	url = https://github.com/ianhubnet/csk-lang-swedish
+[submodule "packages/plugins/oauth"]
+	path = packages/plugins/oauth
+	url = https://github.com/ianhubnet/csk-plugin-oauth
