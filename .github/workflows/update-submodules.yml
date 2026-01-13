@@ -19,20 +19,20 @@ jobs:
       name: ${{ steps.submodule.outputs.name }}
 
     steps:
-      - name: Checkout repo with submodules
+      - name: 1️⃣ Checkout repo with submodules
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.CSK_PAT }}
           submodules: false
 
-      - name: Configure GitHub auth and identity
+      - name: 2️⃣ Configure GitHub auth and identity
         shell: bash
         run: |
           git config --global url."https://${{ secrets.CSK_PAT }}@github.com/".insteadOf "https://github.com/"
           git config user.name "ianhub-bot"
           git config user.email "bot@ianhub.net"
 
-      - name: Add or Update Submodule
+      - name: 3️⃣ Add or Update Submodule
         id: submodule
         shell: bash
         env:
@@ -127,7 +127,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download latest release ZIP
+      - name: 1️⃣ Download latest release ZIP
         run: |
           REPO="${{ needs.update.outputs.repo }}"
           NAME="${{ needs.update.outputs.name }}"
@@ -152,7 +152,7 @@ jobs:
           echo "ZIP=${NAME}.zip" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Upload to FTP
+      - name: 2️⃣ Upload to FTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
         with:
           server: ${{ secrets.FTP_HOST }}
@@ -165,34 +165,34 @@ jobs:
             **/*
             !${{ env.ZIP }}
 
-      # - name: Send JSON-RPC
-      #   shell: bash
-      #   env:
-      #     RPC_URL: ${{ secrets.RPC_URL }}
-      #     RPC_KEY: ${{ secrets.RPC_KEY }}
-      #     RPC_VER: ${{ secrets.RPC_VER }}
-      #   run: |
-      #     REPO="${{ needs.update.outputs.repo }}"
-      #     REPO_URL="https://github.com/$REPO"
-      #     TYPE="${{ needs.update.outputs.type }}"
-      #     PACKAGE="${{ needs.update.outputs.name }}"
-      #     OWNER="${REPO%%/*}"
-      #     NAME="${REPO##*/}"
-      #     ID=$(openssl rand -hex 8)
+      - name: 3️⃣ Send JSON-RPC
+        shell: bash
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+          RPC_KEY: ${{ secrets.RPC_KEY }}
+          RPC_VER: ${{ secrets.RPC_VER }}
+        run: |
+          REPO="${{ needs.update.outputs.repo }}"
+          REPO_URL="https://github.com/$REPO"
+          TYPE="${{ needs.update.outputs.type }}"
+          PACKAGE="${{ needs.update.outputs.name }}"
+          OWNER="${REPO%%/*}"
+          NAME="${REPO##*/}"
+          ID=$(openssl rand -hex 8)
 
-      #     curl -s -X POST "$RPC_URL" \
-      #       -H "Content-Type: application/json" \
-      #       -H "Authorization: Bearer $RPC_KEY" \
-      #       -d "{
-      #         \"jsonrpc\": \"$RPC_VER\",
-      #         \"method\": \"update\",
-      #         \"params\": {
-      #           \"type\": \"$TYPE\",
-      #           \"package\": \"$PACKAGE\",
-      #           \"repo\": \"$REPO_URL\",
-      #           \"owner\": \"$OWNER\",
-      #           \"name\": \"$NAME\",
-      #           \"version\": \"${{ env.VERSION }}\"
-      #         },
-      #         \"id\": \"$ID\"
-      #       }"
+          curl -s -X POST "$RPC_URL" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $RPC_KEY" \
+            -d "{
+              \"jsonrpc\": \"$RPC_VER\",
+              \"method\": \"update\",
+              \"params\": {
+                \"type\": \"$TYPE\",
+                \"package\": \"$PACKAGE\",
+                \"repo\": \"$REPO_URL\",
+                \"owner\": \"$OWNER\",
+                \"name\": \"$NAME\",
+                \"version\": \"${{ env.VERSION }}\"
+              },
+              \"id\": \"$ID\"
+            }"
