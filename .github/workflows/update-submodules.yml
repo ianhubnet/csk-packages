@@ -4,6 +4,10 @@ on:
   repository_dispatch:
     types: [update-submodules]
 
+permissions:
+  contents: write
+  actions: read
+
 concurrency:
   group: update-submodules-${{ github.event.client_payload.type }}-${{ github.event.client_payload.name }}
   cancel-in-progress: false
@@ -19,20 +23,28 @@ jobs:
       name: ${{ steps.submodule.outputs.name }}
 
     steps:
-      - name: 1️⃣ Checkout repo with submodules
-        uses: actions/checkout@v4
+      - name: 1️⃣ Create ianhub-agent token
+        id: app-token
+        uses: actions/create-github-app-token@v2
         with:
-          token: ${{ secrets.CSK_PAT }}
+          app-id: ${{ secrets.IANHUB_AGENT_APP_ID }}
+          private-key: ${{ secrets.IANHUB_AGENT_PRIVATE_KEY }}
+          owner: ianhubnet
+      
+      - name: 2️⃣ Checkout repo with submodules
+        uses: actions/checkout@v5
+        with:
+          token: ${{ steps.app-token.outputs.token }}
           submodules: false
-
-      - name: 2️⃣ Configure GitHub auth and identity
+      
+      - name: 3️⃣ Configure GitHub auth and identity
         shell: bash
         run: |
-          git config --global url."https://${{ secrets.CSK_PAT }}@github.com/".insteadOf "https://github.com/"
-          git config user.name "ianhub-bot"
-          git config user.email "bot@ianhub.net"
+          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/".insteadOf "https://github.com/"
+          git config --global user.name "ianhub-agent[bot]"
+          git config --global user.email "ianhub-agent[bot]@users.noreply.github.com"
 
-      - name: 3️⃣ Add or Update Submodule
+      - name: 4️⃣ Add or Update Submodule
         id: submodule
         shell: bash
         env:
@@ -79,7 +91,7 @@ jobs:
             mkdir -p "$(dirname "$SUB_PATH")"
 
             # Add using token for authentication, then normalize URL
-            git submodule add "https://${{ secrets.CSK_PAT }}@github.com/$REPO" "$SUB_PATH"
+            git submodule add "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/$REPO" "$SUB_PATH"
             git config -f .gitmodules submodule."$SUB_PATH".url "https://github.com/$REPO"
             git submodule sync
           fi
@@ -127,14 +139,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 1️⃣ Download latest release ZIP
+      - name: 1️⃣ Create ianhub-agent token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.IANHUB_AGENT_APP_ID }}
+          private-key: ${{ secrets.IANHUB_AGENT_PRIVATE_KEY }}
+          owner: ianhubnet
+
+      - name: 2️⃣ Download latest release ZIP
         run: |
           REPO="${{ needs.update.outputs.repo }}"
           NAME="${{ needs.update.outputs.name }}"
           API_URL="https://api.github.com/repos/$REPO/releases/latest"
 
           echo "🔍 Fetching latest release metadata..."
-          curl -L -H "Authorization: token ${{ secrets.CSK_PAT }}" "$API_URL" > latest.json
+          curl -L -H "Authorization: Bearer ${{ steps.app-token.outputs.token }}" "$API_URL" > latest.json
 
           ZIP_URL=$(jq -r '.assets[] | select(.name | endswith(".zip")) | .browser_download_url' latest.json | head -n 1)
           VERSION=$(jq -r '.tag_name' latest.json)
@@ -152,8 +172,8 @@ jobs:
           echo "ZIP=${NAME}.zip" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: 2️⃣ Upload to FTP
-        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+      - name: 3️⃣ Upload to FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           port: ${{ secrets.FTP_PORT }}
@@ -166,7 +186,7 @@ jobs:
             **/*
             !${{ env.ZIP }}
 
-      - name: 3️⃣ Send JSON-RPC
+      - name: 4️⃣ Send JSON-RPC
         shell: bash
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
