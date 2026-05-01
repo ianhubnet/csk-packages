@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: 1️⃣ Create ianhub-agent token
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.IANHUB_AGENT_APP_ID }}
           private-key: ${{ secrets.IANHUB_AGENT_PRIVATE_KEY }}
