@@ -151,7 +151,7 @@ jobs:
         run: |
           REPO="${{ needs.update.outputs.repo }}"
           NAME="${{ needs.update.outputs.name }}"
-          API_URL="https://api.github.com/repos/$REPO/releases/latest"
+          API_URL="https://api.github.com/repos/$REPO/releases/tags/$VERSION"
 
           echo "🔍 Fetching latest release metadata..."
           curl -L -H "Authorization: Bearer ${{ steps.app-token.outputs.token }}" "$API_URL" > latest.json
