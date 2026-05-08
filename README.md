@@ -16,38 +16,39 @@ packages/
 └──themes/
 ```
 
-Each subfolder contains official CSK components, many of which are private.
+Each subfolder contains Git submodule references to official CSK packages. Some packages may be private or access-restricted.
 
 | Type      | Description                                  | Access |
-| --------- | -------------------------------------------- | :----: |
+| :-------- | :------------------------------------------- | :----: |
 | Languages | Translation packs                            |   🔒   |
 | Modules   | Extend core functionality (e.g., Blog, Shop) |   🔒   |
 | Plugins   | Add features or integrations                 |   🔒   |
-| Themes    | Frontend Themes                              |   🔒   |
+| Themes    | Frontend themes                              |   🔒   |
 
 ## 🛠️ Purpose
 
 * Keep all official CSK extensions organized in one place.
 * Provide a base for the CSK **in-app Marketplace**.
 * Simplify updates, packaging, and distribution pipelines.
-* Serve as a backend dependency hub for production builds.
+* Serve as a package index for automation, release tooling, and marketplace metadata.
 
-## Automation
+## ⚙️ Automation
 New packages register themselves automatically when they define:
 - `CSK_NAME` variable → name of the package (e.g., `pages`).
 - `CSK_TYPE` variable → type of the package (`module`, `theme`, etc.).
-- `CSK_PAT` secret    → personal access token for communication.
+- `IANHUB_AGENT_CLIENT_ID` and `IANHUB_AGENT_PRIVATE_KEY` → for communication.
 
 > 🪄 This system allows decentralized development while maintaining a synchronized ecosystem.
 
 ---
 
 ## Example
-| Type | Example Repo | CSK_NAME | CSK_TYPE | CSK_PAT | Added Under |
-|------|--------------|-----------|----------|---------|-------------|
-| Module | `csk-module-pages` | `pages` | `module` | `<secret>` | `packages/modules/pages` |
-| Plugin | `csk-plugin-oauth` | `oauth` | `plugin` | `<secret>` | `packages/plugins/oauth` |
-| Theme | `csk-theme-classic` | `classic` | `theme` | `<secret>` | `packages/themes/classic` |
+| Type | Example Repo | `CSK_NAME` | `CSK_TYPE` | `IANHUB_AGENT_*` | Added Under |
+| :--- | :----------: | :--------: | :--------: | :--------------: | :---------- |
+| Language | `csk-lang-english` | `english` | `language` | `<secrets>` | `packages/languages/english` |
+| Module | `csk-module-pages` | `pages` | `module` | `<secrets>` | `packages/modules/pages` |
+| Plugin | `csk-plugin-oauth` | `oauth` | `plugin` | `<secrets>` | `packages/plugins/oauth` |
+| Theme | `csk-theme-classic` | `classic` | `theme` | `<secrets>` | `packages/themes/classic` |
 
 ---
 
@@ -63,3 +64,19 @@ New packages register themselves automatically when they define:
 ---
 
 > This repository is part of the **Ianhub CSK ecosystem**. Most submodules are private, but their structure and organization are visible for transparency and documentation.
+
+---
+
+## Licensing
+
+This repository acts as a public index for CiSkeleton (CSK) packages.
+
+The repository itself does not grant usage rights to the packages listed here. Each package, module, plugin, theme, or language pack is governed by its own license, terms, or access policy.
+
+Some packages may be private or proprietary. Public visibility of this index, its folder structure, or its Git submodule references does not imply that the listed packages are open source or freely redistributable.
+
+Third-party components used by individual CSK packages remain governed by their own respective licenses. Those notices should be included in the package or project that directly bundles or distributes them.
+
+---
+
+For licensing questions or additional usage rights, contact: **legal@ianhub.net**
